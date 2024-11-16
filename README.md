@@ -33,7 +33,6 @@ The API is designed to support concurrent access with in-memory data storage for
 ## Technologies Used
 
 - *Java Spring Boot*: Framework for building and running the REST API
-- *Ollama API*: For AI-based profile summaries
 - *Maven*: Dependency and project management
 
 ### Technical Details
