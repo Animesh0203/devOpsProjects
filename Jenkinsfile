@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk21'   // Ensure JDK17 is available for Maven
-        maven 'maven3' // Ensure Maven3 is available
-    }
-
     environment {
         DOCKER_IMAGE = "spring-boot-app"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
@@ -33,9 +28,26 @@ pipeline {
             }
         }
 
-        stage('Clean & Package') {
+        stage('Docker Build & Push') {
             steps {
-                sh "mvn clean package -DskipTests"
+                script {
+                    withDockerRegistry(credentialsId: 'DockerHub-Token', toolName: 'docker') {
+                        def imageName = "spring-boot-app"
+                        def buildTag = "${imageName}:${DOCKER_TAG}"
+                        def latestTag = "${imageName}:latest" // Tag with latest
+
+                        // Build the Docker image using the Dockerfile
+                        sh "docker build -t ${imageName}:${DOCKER_TAG} -f Dockerfile ."
+
+                        // Tag the image with 'latest'
+                        sh "docker tag ${imageName}:${DOCKER_TAG} abdeod/${buildTag}"
+                        sh "docker tag ${imageName}:${DOCKER_TAG} abdeod/${latestTag}"
+
+                        // Push the image to DockerHub
+                        sh "docker push abdeod/${buildTag}"
+                        sh "docker push abdeod/${latestTag}"
+                    }
+                }
             }
         }
 
