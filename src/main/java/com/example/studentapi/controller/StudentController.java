@@ -32,7 +32,7 @@ public class StudentController {
     @Autowired
     private OllamaService ollamaService;
 
-    //  new student creation
+    //  method for new student creation
     @PostMapping
     public ResponseEntity<Student> createStudent(@Valid @RequestBody Student student) {
         // Input 
