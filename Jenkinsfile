@@ -19,7 +19,7 @@ pipeline {
                 script {
                     // Use Docker to run Maven clean and test
                     sh """
-                        docker run --rm -v \$(pwd):/usr/src/mymaven -w /usr/src/mymaven $DOCKER_IMAGE mvn clean test
+                        docker run --rm -v //c/ProgramData/Jenkins/.jenkins/workspace/Docker:/usr/src/mymaven -w /usr/src/mymaven $DOCKER_IMAGE mvn clean test
                     """
                 }
             }
