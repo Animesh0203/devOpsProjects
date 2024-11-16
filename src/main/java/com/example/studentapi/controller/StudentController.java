@@ -30,7 +30,7 @@ public class StudentController {
     @Autowired
     private OllamaService ollamaService;
 
-    
+    //  new student creation
     @PostMapping
     public ResponseEntity<Student> createStudent(@Valid @RequestBody Student student) {
         // Input 
@@ -43,14 +43,14 @@ public class StudentController {
         return ResponseEntity.status(201).body(savedStudent);
     }
 
-    
+    //  get all students
     @GetMapping
     public ResponseEntity<List<Student>> getAllStudents() {
         List<Student> students = studentRepository.findAll();
         return ResponseEntity.ok(students);
     }
 
-    
+    // get by id
     @GetMapping("/{id}")
     public ResponseEntity<Student> getStudentById(@PathVariable int id) {
         Student student = studentRepository.findById(id);
@@ -60,14 +60,14 @@ public class StudentController {
         return ResponseEntity.ok(student);
     }
 
-    
+    // update by id
     @PutMapping("/{id}")
     public ResponseEntity<Student> updateStudent(@PathVariable int id, @Valid @RequestBody Student student) {
         if (studentRepository.findById(id) == null) {
             return ResponseEntity.notFound().build();
         }
 
-        
+        // Input Validation
         if (student.getName() == null || student.getName().isEmpty() ||
             student.getAge() <= 0 || student.getEmail() == null || student.getEmail().isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -77,7 +77,7 @@ public class StudentController {
         return ResponseEntity.ok(updatedStudent);
     }
 
-    
+    // **Delete a Student by ID** (`DELETE /students/{id}`)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStudent(@PathVariable int id) {
         if (studentRepository.findById(id) == null) {
