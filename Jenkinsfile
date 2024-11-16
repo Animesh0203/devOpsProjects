@@ -1,72 +1,50 @@
 pipeline {
     agent any
-
+    
     environment {
-        DOCKER_IMAGE = 'spring-boot-app:latest'
+        // Set your Docker image for Maven and Java
+        DOCKER_IMAGE = 'maven:3.8.1-openjdk-11'  // A Docker image that includes Maven and OpenJDK 11
     }
-
+    
     stages {
-        stage('Checkout') {
+        stage('Clone Repository') {
             steps {
-                // Ensure you're checking out the correct branch
-                git branch: 'main', url: 'https://github.com/Animesh0203/devOpsProjects.git'
+                // Clone your GitHub repository
+                git url: 'https://github.com/Animesh0203/devOpsProjects.git', branch: 'main'  // Replace with your repository URL
             }
         }
-
-        stage('Build Docker Image') {
+        
+        stage('Build & Test with Docker') {
             steps {
                 script {
-                    // Build the Docker image using your Dockerfile
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    // Use Docker to run Maven clean and test
+                    sh """
+                        docker run --rm -v \$(pwd):/usr/src/mymaven -w /usr/src/mymaven $DOCKER_IMAGE mvn clean test
+                    """
                 }
             }
         }
-
-        stage('Run Tests') {
+        
+        stage('Post-Build Actions') {
             steps {
-                script {
-                    // Run the tests in the Docker container
-                    sh '''
-                    docker run --rm ${DOCKER_IMAGE} mvn test
-                    '''
-                }
-            }
-        }
-
-        stage('Run Application') {
-            steps {
-                script {
-                    // Run the Spring Boot application in the Docker container
-                    sh 'docker run -d -p 8080:8080 ${DOCKER_IMAGE}'
-                }
-            }
-        }
-
-        stage('Cleanup') {
-            steps {
-                script {
-                    // Stop and remove any containers created by the 'Run Application' stage
-                    sh 'docker ps -q --filter "ancestor=${DOCKER_IMAGE}" | xargs docker stop || true'
-                    sh 'docker ps -a -q --filter "ancestor=${DOCKER_IMAGE}" | xargs docker rm || true'
-                    // Optionally remove the Docker image if you no longer need it
-                    sh 'docker rmi ${DOCKER_IMAGE}'
-                }
+                // Archive test results if needed (adjust path if necessary)
+                junit '**/target/test-*.xml'  // Adjust for your test report location
             }
         }
     }
-
+    
     post {
         always {
-            // Clean up Docker resources
-            sh 'docker system prune -f'
+            // This will run after every build, regardless of success or failure
+            echo 'Cleaning up resources'
         }
-
         success {
-            echo 'Pipeline completed successfully!'
+            // This will run only if the build succeeds
+            echo 'Build and tests passed!'
         }
-
         failure {
-            echo 'Pipeline failed!'
+            // This will run if the build fails
+            echo 'Build failed. Check the logs!'
         }
     }
 }
