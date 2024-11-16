@@ -24,9 +24,7 @@ This project is a RESTful API developed to perform CRUD operations on a list of 
 - *Age* (integer): Age of the student
 - *Email* (string): Contact email of the student
 
-The API is designed to support concurrent access with in-memory data storage for fast access, utilizing Java's ConcurrentHashMap for thread safety. Additionally, the API integrates with the *Ollama API* to generate AI-based summaries for each student's profile.
-
-> *Note:* It’s important to note that Ollama depends on your system’s specifications. For optimal performance, Ollama requires a high-core system to handle the AI model processing. While I may not be able to fully demonstrate the summary output on this machine, rest assured that it works on systems with sufficient resources and is configured to provide a summary whenever a student's details are requested.
+The API is designed to support concurrent access with in-memory data storage for fast access, utilizing Java's ConcurrentHashMap for thread safety.
 
 ---
 
