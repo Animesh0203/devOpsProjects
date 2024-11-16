@@ -21,6 +21,7 @@ import com.example.studentapi.service.OllamaService;
 import jakarta.validation.Valid;
 
 
+
 @RestController
 @RequestMapping("/students")
 public class StudentController {
@@ -31,7 +32,7 @@ public class StudentController {
     @Autowired
     private OllamaService ollamaService;
 
-    //  new student creation
+    //  method for new student creation
     @PostMapping
     public ResponseEntity<Student> createStudent(@Valid @RequestBody Student student) {
         // Input 
@@ -44,7 +45,7 @@ public class StudentController {
         return ResponseEntity.status(201).body(savedStudent);
     }
 
-    //  get all students
+    // fetch all students
     @GetMapping
     public ResponseEntity<List<Student>> getAllStudents() {
         List<Student> students = studentRepository.findAll();
@@ -61,13 +62,13 @@ public class StudentController {
         return ResponseEntity.ok(student);
     }
 
-    // update by id
+    // update by id number
     @PutMapping("/{id}")
     public ResponseEntity<Student> updateStudent(@PathVariable int id, @Valid @RequestBody Student student) {
         if (studentRepository.findById(id) == null) {
             return ResponseEntity.notFound().build();
         }
-
+// student validation
         // Input Validation
         if (student.getName() == null || student.getName().isEmpty() ||
             student.getAge() <= 0 || student.getEmail() == null || student.getEmail().isEmpty()) {
@@ -94,6 +95,7 @@ public class StudentController {
         Student student = studentRepository.findById(id);
         if (student == null) {
             return ResponseEntity.notFound().build();
+            
         }
 
         String prompt = String.format(
@@ -108,6 +110,7 @@ public class StudentController {
         }
     }
 
+// create class for summary
     // Inner class to represent the summary response
     public static class SummaryResponse {
         private String summary;
