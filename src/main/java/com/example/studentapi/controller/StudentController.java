@@ -21,7 +21,6 @@ import com.example.studentapi.service.OllamaService;
 import jakarta.validation.Valid;
 
 
-// Updated code for controller
 @RestController
 @RequestMapping("/students")
 public class StudentController {
