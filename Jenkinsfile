@@ -39,29 +39,6 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
-            steps {
-                script {
-                    withDockerRegistry(credentialsId: 'DockerHub-Token', toolName: 'docker') {
-                        def imageName = "spring-boot-app"
-                        def buildTag = "${imageName}:${BUILD_TAG}"
-                        def latestTag = "${imageName}:latest" // Tag with latest
-
-                        // Build the Docker image
-                        sh "docker build -t ${imageName}:${BUILD_TAG} -f Dockerfile ."
-
-                        // Tag the image with 'latest'
-                        sh "docker tag ${imageName}:${BUILD_TAG} abdeod/${buildTag}"
-                        sh "docker tag ${imageName}:${BUILD_TAG} abdeod/${latestTag}"
-
-                        // Push the image to DockerHub
-                        sh "docker push abdeod/${buildTag}"
-                        sh "docker push abdeod/${latestTag}"
-                    }
-                }
-            }
-        }
-
         stage('Vulnerability Scanning') {
             steps {
                 sh "trivy image abdeod/${DOCKER_IMAGE}:${DOCKER_TAG}"
