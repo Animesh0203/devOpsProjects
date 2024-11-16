@@ -45,7 +45,7 @@ public class StudentController {
         return ResponseEntity.status(201).body(savedStudent);
     }
 
-    //  get all students
+    // fetch all students
     @GetMapping
     public ResponseEntity<List<Student>> getAllStudents() {
         List<Student> students = studentRepository.findAll();
