@@ -66,7 +66,7 @@ public class StudentController {
         if (studentRepository.findById(id) == null) {
             return ResponseEntity.notFound().build();
         }
-
+// student validation
         // Input Validation
         if (student.getName() == null || student.getName().isEmpty() ||
             student.getAge() <= 0 || student.getEmail() == null || student.getEmail().isEmpty()) {
