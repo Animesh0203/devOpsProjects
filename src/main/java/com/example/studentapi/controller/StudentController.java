@@ -95,6 +95,7 @@ public class StudentController {
         Student student = studentRepository.findById(id);
         if (student == null) {
             return ResponseEntity.notFound().build();
+            
         }
 
         String prompt = String.format(
