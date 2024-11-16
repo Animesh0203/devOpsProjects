@@ -52,7 +52,7 @@ public class StudentController {
         return ResponseEntity.ok(students);
     }
 
-    // fetch by id
+    // get by id
     @GetMapping("/{id}")
     public ResponseEntity<Student> getStudentById(@PathVariable int id) {
         Student student = studentRepository.findById(id);
