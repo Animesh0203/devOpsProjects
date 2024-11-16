@@ -1,6 +1,6 @@
 # Student API Project
 
-> A RESTful API to manage a student database, providing CRUD (Create, Read, Update, Delete) operations on student records. This project also integrates with the Ollama API to generate AI-based summaries for each student's profile.
+> A RESTful API to manage a student database, providing CRUD (Create, Read, Update, Delete) operations on student records. 
 
 ---
 
@@ -59,8 +59,6 @@ The API is designed to support concurrent access with in-memory data storage for
 4. *Delete Student* - DELETE /students/{id}  
    Remove a student record.
 
-5. *Generate Summary* - POST /students/{id}/summary  
-   Generate an AI-based summary for a student profile using Ollama API.
 
 ---
 
@@ -81,7 +79,6 @@ The project also leverages *Java's ExecutorService* for managing asynchronous ca
 
 - *Java*: Version 11 or higher
 - *Maven*: For building and running the project
-- *Ollama*: For summary generation, installed locally on systems with high-core CPUs
 
 ---
 
