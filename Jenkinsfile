@@ -1,50 +1,73 @@
 pipeline {
     agent any
-    
+
     environment {
-        // Set your Docker image for Maven and Java
-        DOCKER_IMAGE = 'maven:3.8.1-openjdk-11'  // A Docker image that includes Maven and OpenJDK 11
+        IMAGE_NAME = 'springboot-app'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
-    
+
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                // Clone your GitHub repository
-                git url: 'https://github.com/Animesh0203/devOpsProjects.git', branch: 'main'  // Replace with your repository URL
+                echo 'Checking out code...'
+                git branch: 'main', url: 'https://github.com/Animesh0203/devOpsProjects.git'
             }
         }
-        
-        stage('Build & Test with Docker') {
+
+        stage('Setup Docker') {
             steps {
                 script {
-                    // Use Docker to run Maven clean and test
-                    sh """
-                        docker run --rm -v //c/ProgramData/Jenkins/.jenkins/workspace/Docker:/usr/src/mymaven -w /usr/src/mymaven $DOCKER_IMAGE mvn clean test
-                    """
+                    sh 'docker --version'
                 }
             }
         }
-        
-        stage('Post-Build Actions') {
+
+        stage('Maven Build') {
             steps {
-                // Archive test results if needed (adjust path if necessary)
-                junit '**/target/test-*.xml'  // Adjust for your test report location
+                echo 'Building Maven project...'
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                sh 'mvn test'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo 'Building Docker image...'
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                echo 'Running Docker container...'
+                sh """
+                    docker run -d --rm \
+                    --name springboot-container \
+                    -p 8080:8080 ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
     }
-    
+
     post {
-        always {
-            // This will run after every build, regardless of success or failure
-            echo 'Cleaning up resources'
-        }
         success {
-            // This will run only if the build succeeds
-            echo 'Build and tests passed!'
+            echo 'Build, test, and deployment successful!'
         }
         failure {
-            // This will run if the build fails
-            echo 'Build failed. Check the logs!'
+            echo 'Build failed!'
+        }
+        always {
+            echo 'Cleaning up Docker containers...'
+            sh """
+                docker stop springboot-container || true
+                docker system prune -f
+            """
         }
     }
 }
