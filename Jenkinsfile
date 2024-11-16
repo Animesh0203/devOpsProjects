@@ -8,8 +8,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from your repository
-                git 'https://github.com/Animesh0203/devOpsProjects.git'
+                // Ensure you're checking out the correct branch
+                git branch: 'main', url: 'https://github.com/Animesh0203/devOpsProjects.git'
             }
         }
 
