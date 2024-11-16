@@ -1,76 +1,55 @@
 pipeline {
     agent any
 
-    tools {
-    git 'Default'
-    }
-
-
     environment {
-        DOCKER_IMAGE = "spring-boot-app"
-        DOCKER_TAG = "${env.BUILD_NUMBER}"
+        DOCKER_IMAGE = 'spring-boot-app:latest'
     }
 
     stages {
-        stage('Code Checkout') {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Animesh0203/devOpsProjects'
+                // Checkout the code from your repository
+                git 'https://github.com/Animesh0203/devOpsProjects.git'
             }
         }
 
-        stage('OWASP Dependency Check') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --format HTML', odcInstallation: 'db-check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-
-        stage('Sonarqube Analysis') {
-            steps {
-                sh ''' mvn sonar:sonar \
-                    -Dsonar.host.url=http://localhost:9000/ \
-                    -Dsonar.login=squ_9bd7c664e4941bd4e7670a88ed93d68af40b42a3 '''
-            }
-        }
-
-        stage('Docker Build & Push') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: 'DockerHub-Token', toolName: 'docker') {
-                        def imageName = "spring-boot-app"
-                        def buildTag = "${imageName}:${DOCKER_TAG}"
-                        def latestTag = "${imageName}:latest" // Tag with latest
-
-                        // Build the Docker image using the Dockerfile
-                        sh "docker build -t ${imageName}:${DOCKER_TAG} -f Dockerfile ."
-
-                        // Tag the image with 'latest'
-                        sh "docker tag ${imageName}:${DOCKER_TAG} abdeod/${buildTag}"
-                        sh "docker tag ${imageName}:${DOCKER_TAG} abdeod/${latestTag}"
-
-                        // Push the image to DockerHub
-                        sh "docker push abdeod/${buildTag}"
-                        sh "docker push abdeod/${latestTag}"
-                    }
+                    // Build the Docker image using your Dockerfile
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
         }
 
-        stage('Vulnerability Scanning') {
+        stage('Run Tests') {
             steps {
-                sh "trivy image abdeod/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                script {
+                    // Run the tests in the Docker container
+                    sh '''
+                    docker run --rm ${DOCKER_IMAGE} mvn test
+                    '''
+                }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Run Application') {
             steps {
                 script {
-                    // Stop any running container with the same name
-                    sh "docker stop ${DOCKER_IMAGE} || true"
-                    sh "docker rm ${DOCKER_IMAGE} || true"
+                    // Run the Spring Boot application in the Docker container
+                    sh 'docker run -d -p 8080:8080 ${DOCKER_IMAGE}'
+                }
+            }
+        }
 
-                    // Run the Docker container
-                    sh "docker run -d --name ${DOCKER_IMAGE} -p 8080:8080 abdeod/${DOCKER_IMAGE}:${DOCKER_TAG}"
+        stage('Cleanup') {
+            steps {
+                script {
+                    // Stop and remove any containers created by the 'Run Application' stage
+                    sh 'docker ps -q --filter "ancestor=${DOCKER_IMAGE}" | xargs docker stop || true'
+                    sh 'docker ps -a -q --filter "ancestor=${DOCKER_IMAGE}" | xargs docker rm || true'
+                    // Optionally remove the Docker image if you no longer need it
+                    sh 'docker rmi ${DOCKER_IMAGE}'
                 }
             }
         }
@@ -78,8 +57,16 @@ pipeline {
 
     post {
         always {
-            // Clean up Docker images after build
-            sh "docker rmi abdeod/${DOCKER_IMAGE}:${DOCKER_TAG} || true"
+            // Clean up Docker resources
+            sh 'docker system prune -f'
+        }
+
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
