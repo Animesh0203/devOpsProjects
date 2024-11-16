@@ -1,32 +1,35 @@
 pipeline {
     agent any
 
-    tools{
+    tools {
         jdk 'jdk17'   // Ensure JDK17 is available for Maven
         maven 'maven3' // Ensure Maven3 is available
+    }
+
+    environment {
+        DOCKER_IMAGE = "spring-boot-app"
+        DOCKER_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
         stage('Code Checkout') {
             steps {
-                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/AbderrahmaneOd/Spring-Boot-Jenkins-CI-CD'
+                git branch: 'main', url: 'https://github.com/Animesh0203/devOpsProjects'
             }
         }
-        
+
         stage('OWASP Dependency Check') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ --format HTML ', odcInstallation: 'db-check'
+                dependencyCheck additionalArguments: '--scan ./ --format HTML', odcInstallation: 'db-check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Sonarqube Analysis') {
             steps {
-                sh ''' 
-                    mvn sonar:sonar \
+                sh ''' mvn sonar:sonar \
                     -Dsonar.host.url=http://localhost:9000/ \
-                    -Dsonar.login=squ_9bd7c664e4941bd4e7670a88ed93d68af40b42a3 
-                '''
+                    -Dsonar.login=squ_9bd7c664e4941bd4e7670a88ed93d68af40b42a3 '''
             }
         }
 
@@ -36,45 +39,53 @@ pipeline {
             }
         }
 
-        stage("Docker Build & Push") {
+        stage('Docker Build & Push') {
             steps {
                 script {
-                    // Define Docker image name and tags
-                    def imageName = "spring-boot-prof-management"
-                    def buildTag = "${imageName}:${BUILD_NUMBER}"
-                    def latestTag = "${imageName}:latest"  // Tag for latest build
-                    
-                    // Build Docker image using provided Dockerfile
-                    sh """
-                        docker build -t ${imageName} -f Dockerfile .  // Use Dockerfile provided in your repo
-                    """
-                    
-                    // Tag the Docker image
-                    sh "docker tag ${imageName} abdeod/${buildTag}"
-                    sh "docker tag ${imageName} abdeod/${latestTag}"  // Tag the image with 'latest'
-                    
-                    // Push both build and latest tags to Docker Hub
-                    sh "docker push abdeod/${buildTag}"
-                    sh "docker push abdeod/${latestTag}"  // Push the 'latest' tag
-                    
-                    // Set build tag as environment variable for subsequent stages
-                    env.BUILD_TAG = buildTag
+                    withDockerRegistry(credentialsId: 'DockerHub-Token', toolName: 'docker') {
+                        def imageName = "spring-boot-app"
+                        def buildTag = "${imageName}:${BUILD_TAG}"
+                        def latestTag = "${imageName}:latest" // Tag with latest
+
+                        // Build the Docker image
+                        sh "docker build -t ${imageName}:${BUILD_TAG} -f Dockerfile ."
+
+                        // Tag the image with 'latest'
+                        sh "docker tag ${imageName}:${BUILD_TAG} abdeod/${buildTag}"
+                        sh "docker tag ${imageName}:${BUILD_TAG} abdeod/${latestTag}"
+
+                        // Push the image to DockerHub
+                        sh "docker push abdeod/${buildTag}"
+                        sh "docker push abdeod/${latestTag}"
+                    }
                 }
             }
         }
 
         stage('Vulnerability Scanning') {
             steps {
-                // Run vulnerability scan on the Docker image using Trivy
-                sh "trivy image abdeod/${BUILD_TAG}"
+                sh "trivy image abdeod/${DOCKER_IMAGE}:${DOCKER_TAG}"
             }
         }
 
-        stage("Staging") {
+        stage('Run Docker Container') {
             steps {
-                // Run the application in staging using Docker Compose
-                sh 'docker-compose up -d'
+                script {
+                    // Stop any running container with the same name
+                    sh "docker stop ${DOCKER_IMAGE} || true"
+                    sh "docker rm ${DOCKER_IMAGE} || true"
+
+                    // Run the Docker container
+                    sh "docker run -d --name ${DOCKER_IMAGE} -p 8080:8080 abdeod/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                }
             }
+        }
+    }
+
+    post {
+        always {
+            // Clean up Docker images after build
+            sh "docker rmi abdeod/${DOCKER_IMAGE}:${DOCKER_TAG} || true"
         }
     }
 }
