@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        jdk 'jdk17'   // Ensure JDK17 is available for Maven
+        jdk 'jdk21'   // Ensure JDK17 is available for Maven
         maven 'maven3' // Ensure Maven3 is available
     }
 
