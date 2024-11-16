@@ -60,7 +60,7 @@ public class StudentController {
         return ResponseEntity.ok(student);
     }
 
-    // update by id
+    // update by id number
     @PutMapping("/{id}")
     public ResponseEntity<Student> updateStudent(@PathVariable int id, @Valid @RequestBody Student student) {
         if (studentRepository.findById(id) == null) {
