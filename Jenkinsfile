@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    tools {
+    git 'Default'
+    }
+
+
     environment {
         DOCKER_IMAGE = "spring-boot-app"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
