@@ -20,6 +20,8 @@ import com.example.studentapi.service.OllamaService;
 
 import jakarta.validation.Valid;
 
+
+//Install jenkins
 @RestController
 @RequestMapping("/students")
 public class StudentController {
