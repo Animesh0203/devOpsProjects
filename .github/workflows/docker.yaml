@@ -23,7 +23,7 @@ jobs:
         with:
           java-version: '17'
           java-package: jdk
-          distribution: 'adoptopenjdk'  # Specify Java distribution
+          distribution: 'temurin'  # Correct distribution for Adoptium (formerly AdoptOpenJDK)
 
       # Build the Spring Boot application (with Maven or Gradle)
       - name: Build with Maven
@@ -42,8 +42,8 @@ jobs:
 
       # Push the Docker image to Docker Hub (if applicable)
       - name: Push Docker image to Docker Hub
-        run: docker push javaRun
+        run: docker push your-image-name
 
       # Optionally, run the container (for testing or deploying)
       - name: Run Docker container
-        run: docker run -d -p 8080:8080 javaRun
+        run: docker run -d -p 8080:8080 your-image-name
