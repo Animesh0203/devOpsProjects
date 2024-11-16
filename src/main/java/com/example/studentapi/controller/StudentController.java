@@ -106,7 +106,7 @@ public class StudentController {
             return ResponseEntity.status(500).body("Failed to generate summary: " + e.getMessage());
         }
     }
-
+// create class for summary
     // Inner class to represent the summary response
     public static class SummaryResponse {
         private String summary;
